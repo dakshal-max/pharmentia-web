@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharmentia | R&amp;D Club - AIKTC School of Pharmacy</title>
+  
+  <!-- Modern Clean Scientific Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===================================================
+       1. GLOBAL RESET & SCIENTIFIC COLOR PALETTE
+    =================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base: #070d18;
+      --bg-gradient: radial-gradient(circle at 50% 20%, #0d1a2d 0%, #070d18 100%);
+      --neon-cyan: #00f0ff;
+      --neon-violet: #b537f2;
+      --neon-emerald: #00ffa3;
+      --glass-surface: rgba(13, 23, 42, 0.65);
+      --glass-surface-hover: rgba(18, 32, 58, 0.85);
+      --glass-border: rgba(0, 240, 255, 0.18);
+      --glass-shine: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-rx: 'Cinzel', serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg-base);
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ===================================================
+       0. LOADING SCREEN STYLES
+    =================================================== */
+    .loader {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #050811;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+    }
+    .loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    .loader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .loader-logo-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .loader-logo {
+      width: 85px;
+      height: 85px;
+      object-fit: contain;
+      border-radius: 50%;
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+      animation: pulseSymbol 2s infinite ease-in-out;
+    }
+    @keyframes pulseSymbol {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.06); filter: brightness(1.35); }
+    }
+    .loader-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+    }
+    .loader-sub {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      color: var(--neon-cyan);
+      margin-bottom: 24px;
+    }
+    .loader-bar {
+      width: 220px;
+      height: 3px;
+      background-color: rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+    .loader-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan);
+      width: 0%;
+      animation: loadProgress 1.8s ease-in-out forwards;
+    }
+    @keyframes loadProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    /* Ambient Nebular Glow Blobs */
+    .glow-sphere {
+      position: fixed;
+      width: 550px;
+      height: 550px;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.16;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-cyan { top: 10%; right: -5%; background: var(--neon-cyan); }
+    .glow-violet { bottom: 15%; left: -5%; background: var(--neon-violet); }
+
+    /* Canvas for DNA, Benzene & Rx */
+    #chem-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Base Layout Container */
+    .container {
+      width: min(1240px, 92%);
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Glass Panels */
+    .glass-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), inset 0 1px 1px var(--glass-shine);
+      border-radius: 20px;
+      transition: all 0.35s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      box-shadow: 0 22px 45px rgba(0, 0, 0, 0.55), 0 0 25px rgba(0, 240, 255, 0.18);
+    }
+
+    /* ===================================================
+       2. NAVIGATION
+    =================================================== */
+    nav {
+      position: sticky;
+      top: 1.25rem;
+      z-index: 100;
+      margin-top: 1.25rem;
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 999px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-logo img {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--neon-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--neon-cyan);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.4rem;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: color 0.25s ease;
+    }
+    .nav-links a:hover {
+      color: var(--neon-cyan);
+    }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--neon-cyan), #0088ff);
+      color: #030811 !important;
+      font-weight: 700 !important;
+      padding: 0.5rem 1.3rem;
+      border-radius: 30px;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.65);
+    }
+
+    /* ===================================================
+       3. HERO SECTION
+    =================================================== */
+    .hero {
+      text-align: center;
+      padding: 4.5rem 0 3.5rem;
+    }
+
+    .college-tag-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0, 240, 255, 0.06);
+      padding: 8px 20px;
+      border-radius: 40px;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      margin-bottom: 1.2rem;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+    }
+
+    .college-tag {
+      font-size: clamp(0.9rem, 2vw, 1.15rem);
+      font-weight: 700;
+      color: var(--neon-cyan);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+
+    .college-img-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--neon-cyan);
+      background: #ffffff;
+      padding: 2px;
+      object-fit: contain;
+    }
+
+    .department-tag {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--neon-emerald);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 6vw, 4.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, #ffffff 40%, var(--neon-cyan) 80%, var(--neon-violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      max-width: 720px;
+      margin: 0 auto 2.5rem;
+      color: var(--text-muted);
+      font-size: 1.08rem;
+      line-height: 1.7;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, var(--neon-cyan), #0099ff);
+      color: #030811;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 0.95rem 2.4rem;
+      border-radius: 14px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      transition: all 0.3s;
+    }
+    .hero-cta:hover {
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.75);
+      transform: translateY(-3px);
+    }
+
+    /* Section Headings */
+    .section-header {
+      text-align: center;
+      margin: 5.5rem 0 2.5rem;
+    }
+    .section-badge {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--neon-cyan);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .section-title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      margin-top: 0.35rem;
+      background: linear-gradient(135deg, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ===================================================
+       4. 3D FLIP CARD SYSTEM
+    =================================================== */
+    .flip-scene {
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    .flip-card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .flip-scene.is-flipped .flip-card,
+    .flip-scene:hover .flip-card {
+      transform: rotateY(180deg);
+    }
+    .flip-front, .flip-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #0b1426 !important; /* Fully opaque background to prevent transparency while flipping */
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+    .flip-back {
+      transform: rotateY(180deg);
+    }
+
+    /* About Section Flip Card */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: stretch;
+    }
+    .about-card-scene {
+      min-height: 460px;
+    }
+    .about-flip-front {
+      background: linear-gradient(135deg, #0f1e36 0%, #0a1324 100%) !important;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2.5rem;
+      text-align: center;
+    }
+    .about-flip-front .year-badge {
+      font-size: 4.2rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      line-height: 1;
+      text-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+    }
+    .about-flip-front .tagline {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+    .click-hint {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--neon-emerald);
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    .about-flip-back {
+      background: #0b1426 !important;
+      border: 1px solid var(--glass-border);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .about-flip-back img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* ===================================================
+       5. TIMELINE: 2025 - 2026 LEGACY
+    =================================================== */
+    .timeline {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: linear-gradient(180deg, var(--neon-cyan), var(--neon-violet), transparent);
+      transform: translateX(-50%);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+      width: 50%;
+      padding: 0 2.2rem;
+    }
+    .timeline-item.left { left: 0; text-align: right; }
+    .timeline-item.right { left: 50%; text-align: left; }
+    
+    .timeline-dot {
+      position: absolute;
+      top: 1.2rem;
+      width: 16px;
+      height: 16px;
+      background: var(--neon-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 15px var(--neon-cyan);
+    }
+    .timeline-item.left .timeline-dot { right: -8px; }
+    .timeline-item.right .timeline-dot { left: -8px; }
+
+    .timeline-content {
+      padding: 1.6rem;
+    }
+    .timeline-year {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--neon-cyan);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    .timeline-content h4 {
+      font-size: 1.15rem;
+      margin-bottom: 0.4rem;
+      color: #fff;
+    }
+    .timeline-content p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ===================================================
+       6. RESEARCH CARDS (FLIP)
+    =================================================== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1.85rem;
+    }
+    .research-card-scene {
+      height: 390px;
+    }
+    .research-card-front, .research-card-back {
+      padding: 1.85rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid var(--glass-border);
+      background: #0b1426 !important;
+    }
+    .card-img-placeholder {
+      width: 100%;
+      height: 160px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+    }
+
+    /* ===================================================
+       7. ACTIVITIES
+    =================================================== */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.6rem;
+    }
+    .activity-card {
+      padding: 2.2rem;
+    }
+    .activity-icon {
+      font-size: 1.5rem;
+      color: var(--neon-cyan);
+      margin-bottom: 1.2rem;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 240, 255, 0.08);
+      border-radius: 14px;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+    }
+
+    /* ===================================================
+       8. MEET THE TEAM (FLIP PROFILES)
+    =================================================== */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.6rem;
+    }
+    .team-card-scene {
+      height: 360px;
+    }
+    .team-front {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.6rem;
+      background: #0b1426 !important;
+      border: 1px solid var(--glass-border);
+    }
+    .team-avatar-initial {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+      margin-bottom: 1.2rem;
+      font-family: var(--font-mono);
+    }
+    .team-front h4 { font-size: 1.15rem; margin-bottom: 0.35rem; color: #fff; }
+    .team-position {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+    .team-back {
+      padding: 2rem;
+      background: #0b1426 !important;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* ===================================================
+       9. ARCHIVE SECTION
+    =================================================== */
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.6rem;
+    }
+    .archive-item {
+      overflow: hidden;
+      border-radius: 18px;
+      position: relative;
+      height: 240px;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), rgba(181, 55, 242, 0.05));
+    }
+    .archive-caption {
+      position: absolute;
+      bottom: 0;
+      inset-inline: 0;
+      padding: 1rem 1.2rem;
+      background: linear-gradient(180deg, transparent, rgba(7, 13, 24, 0.95));
+      font-size: 0.9rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* ===================================================
+       10. SPECIAL THANKS TO DEAN SIR & MENTORS
+    =================================================== */
+    .dean-section {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      padding: 3rem;
+      margin: 4.5rem 0;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      background: linear-gradient(135deg, rgba(13, 23, 42, 0.85), rgba(181, 55, 242, 0.12));
+    }
+    .dean-photo-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .dean-photo {
+      width: 210px;
+      height: 240px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 16px;
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.05);
+      padding: 0;
+    }
+    .dean-text h3 {
+      font-size: 2.1rem;
+      color: #fff;
+      margin-bottom: 0.4rem;
+    }
+    .dean-title {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--neon-cyan);
+      margin-bottom: 1.4rem;
+      display: block;
+      font-weight: 600;
+    }
+    .dean-text p {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #cbd5e1;
+    }
+
+    /* ===================================================
+       11. JOIN US & COMMUNITY LINKS
+    =================================================== */
+    .join-section {
+      text-align: center;
+      padding: 4.5rem 2rem;
+      margin: 3.5rem 0;
+    }
+    .mail-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, var(--neon-cyan), #00a2ff);
+      color: #030811;
+      font-weight: 800;
+      font-size: 1.15rem;
+      padding: 1.15rem 2.8rem;
+      border-radius: 16px;
+      text-decoration: none;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.45);
+      margin-bottom: 2.5rem;
+      transition: all 0.3s;
+    }
+    .mail-btn:hover {
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.8);
+      transform: translateY(-3px);
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .social-card {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.6rem;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 14px;
+      transition: all 0.3s ease;
+    }
+    .social-card:hover {
+      color: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+      transform: translateY(-2px);
+    }
+
+    /* ===================================================
+       12. FOOTER & EMBLEM
+    =================================================== */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 3.5rem 0 2.5rem;
+      text-align: center;
+      margin-top: 5rem;
+    }
+    .footer-logo {
+      width: 75px;
+      height: 75px;
+      margin: 0 auto 1.4rem;
+      border-radius: 50%;
+      border: 1.5px solid var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 240, 255, 0.06);
+      font-family: var(--font-rx);
+      font-size: 1.7rem;
+      color: var(--neon-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+    }
+    .footer-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.03em;
+      color: #fff;
+    }
+    .footer-sub {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .dean-section { grid-template-columns: 1fr; text-align: center; }
+      .dean-photo { width: 180px; height: 180px; margin: 0 auto; }
+      .timeline::before { left: 20px; }
+      .timeline-item { width: 100%; left: 0 !important; text-align: left !important; padding-left: 50px; }
+      .timeline-item .timeline-dot { left: 12px !important; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= LOADING SCREEN ================= -->
+  <div class="loader" id="loader">
+    <div class="loader-content">
+      <div class="loader-logo-wrap">
+        <img src="logo.png" alt="Pharmentia Logo" class="loader-logo">
+        <img src="aiktc-logo.png" alt="AIKTC Logo" class="loader-logo" style="background: #ffffff; padding: 3px;">
+      </div>
+      <div class="loader-text">PHARMENTIA R&amp;D CLUB</div>
+      <div class="loader-sub">AIKTC SCHOOL OF PHARMACY</div>
+      <div class="loader-bar">
+        <div class="loader-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ambient Glow -->
+  <div class="glow-sphere glow-cyan"></div>
+  <div class="glow-sphere glow-violet"></div>
+
+  <!-- Realtime Dynamic Canvas: Small DNA + Small Benzene Rings + Faint Rx Watermarks -->
+  <canvas id="chem-canvas"></canvas>
+
+  <div class="container">
+    <!-- Navbar -->
+    <nav class="glass-card">
+      <a href="#home" class="brand-logo">
+        <img src="logo.png" alt="Pharmentia Logo">
+        <span>PHARMENTIA</span>
+        <span class="pulse-dot"></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#legacy">Legacy</a></li>
+        <li><a href="#research">Research</a></li>
+        <li><a href="#activities">Activities</a></li>
+        <li><a href="#team">Team</a></li>
+        <li><a href="#archive">Archive</a></li>
+        <li><a href="#join" class="nav-cta" id="openLoginBtn">JOIN US</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="home" style="text-align: center; padding: 4.5rem 1rem 3.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <!-- Circular Pharmentia Emblem -->
+      <div style="margin-bottom: 1.5rem;">
+        <img src="logo.png" alt="Pharmentia R&amp;D Club Emblem" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--neon-cyan); box-shadow: 0 0 35px rgba(0, 240, 255, 0.5); background: #ffffff; padding: 4px; object-fit: contain;">
+      </div>
+
+      <!-- College Name Title -->
+      <div style="color: var(--neon-cyan); font-weight: 800; font-size: 1.3rem; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.35rem;">
+        ANJUMAN-I-ISLAM'S KALSEKAR TECHNICAL CAMPUS
+      </div>
+
+      <!-- Department Subtitle -->
+      <div style="color: var(--neon-emerald); font-family: var(--font-mono); font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1.8rem;">
+        SCHOOL OF PHARMACY • NEW PANVEL, NAVI MUMBAI
+      </div>
+
+      <!-- Main Title -->
+      <h1 class="hero-title" style="font-size: 3.8rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: -0.5px;">
+        Pharmentia <span style="color: var(--neon-cyan);">R&amp;D Club</span>
+      </h1>
+
+      <!-- Tagline Title -->
+      <h2 style="font-size: 2.2rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase;">
+        WHERE IDEAS BECOME <span style="color: var(--neon-cyan);">INNOVATION.</span>
+      </h2>
+
+      <!-- Sub-description -->
+      <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 680px; margin: 0 auto 2.2rem; line-height: 1.6;">
+        Club dedicated to scientific curiosity, research and pharmaceutical innovation.
+      </p>
+
+      <a href="#join" class="hero-cta" id="heroJoinBtn">JOIN OUR RESEARCH CELL →</a>
+    </header>
+
+    <!-- 1. ABOUT SECTION (Interactive 3D Flip Card) -->
+    <section id="about">
+      <div class="section-header">
+        <span class="section-badge">// The Innovation Wing</span>
+        <h2 class="section-title">About Pharmentia</h2>
+      </div>
+
+      <div class="about-grid">
+        <!-- Interactive 3D Flip Card -->
+        <div class="flip-scene about-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <!-- Front: 2025 Edition -->
+            <div class="flip-front about-flip-front glass-card">
+              <span class="year-badge">2025</span>
+              <p class="tagline" style="font-size: 1.05rem;">PHARMENTIA ANNUAL EDITION</p>
+              <p style="margin-top: 1.2rem; color: var(--text-muted); font-size: 1.08rem; line-height: 1.6;">
+                Click or hover to reveal the laboratory journey, core committee breakthroughs, and inaugural moments.
+              </p>
+              <span class="click-hint" style="font-size: 0.85rem; margin-top: 1.2rem;">⇄ CLICK TO FLIP CARD</span>
+            </div>
+            <!-- Back: Why It Began -->
+            <div class="flip-back about-flip-back glass-card" style="padding: 2.2rem; text-align: left; display: flex; flex-direction: column; justify-content: center;">
+              <h4 style="font-size: 1.4rem; margin-bottom: 0.8rem; color: var(--neon-cyan);">WHY IT BEGAN?</h4>
+              <p style="font-size: 0.92rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 0.6rem;">
+                Pharmacy is not limited to learning what is already known. It is also about questioning, exploring and creating what comes next.
+              </p>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.6rem;">
+                Pharmentia began with the idea of creating a space where students could move beyond passive learning and actively engage with research, scientific thinking and innovation.
+              </p>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+                A place where a question could become a research idea, an idea could become a concept, and a concept could become something worth sharing.
+              </p>
+              <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-cyan); margin-top: 1rem; font-weight: 700; letter-spacing: 0.5px;">
+                FROM CURIOSITY → TO CONCEPT → TO INNOVATION
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Club Vision Description -->
+        <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: center;">
+          <h3 style="font-size: 1.65rem; margin-bottom: 1rem; color: var(--neon-cyan);">Empowering Next-Gen Pharmacists</h3>
+          <p style="color: #cbd5e1; line-height: 1.7; margin-bottom: 1.1rem; font-size: 1.05rem;">
+            Pharmentia is the official Research &amp; Development club of AIKTC School of Pharmacy. We foster a community of passionate scholars dedicated to drug discovery, novel dosage formulations, and scientific publications.
+          </p>
+          <p style="color: var(--text-muted); line-height: 1.7; font-size: 1.02rem;">
+            Through access to research guidance, peer-review circles, and industry guest lectures, we bridge the gap between pharmacy curricula and modern pharmaceutical industry standards.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. LEGACY PART: 2025 - 2026 TIMELINE -->
+    <section id="legacy">
+      <div class="section-header">
+        <span class="section-badge">// Progression &amp; Milestones</span>
+        <h2 class="section-title">Our Legacy: 2025 – 2026</h2>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item left" data-animate="timeline">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-content">
+            <span class="timeline-year">25/09/2025</span>
+            <h4>Pharmabazz 1.0</h4>
+            <p>Intercollegiate Pharmacy-Focused Pitching Competition. Students from different colleges participated and presented their ideas before a panel of judges from the pharmaceutical field.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item right" data-animate="timeline">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-content">
+            <span class="timeline-year">06/11/2025</span>
+            <h4>Ink your innovation workshop</h4>
+            <p>The session aimed to develop awareness about scientific communication and encourage students to explore research and scientific writing.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item left" data-animate="timeline">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-content">
+            <span class="timeline-year">06/12/2025</span>
+            <h4>Cosmoprof</h4>
+            <p>The initiative encouraged students to understand emerging areas within pharmaceutical and cosmetic sciences and broaden their exposure beyond conventional academic learning.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item right" data-animate="timeline">
+          <div class="timeline-dot"></div>
+          <div class="glass-card timeline-content">
+            <span class="timeline-year">28/03/2026</span>
+            <h4>Graphical abstract workshop</h4>
+            <p>An intercollegiate workshop on graphical abstracts was conducted to introduce students to the concept and preparation of graphical abstracts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RESEARCH SECTION (Flip Cards) -->
+    <section id="research">
+      <div class="section-header">
+        <span class="section-badge">// Knowledge Hub &amp; Databases</span>
+        <h2 class="section-title">Research Pillars, Literature &amp; Publications</h2>
+      </div>
+
+      <div class="cards-grid">
+        <!-- Card 1: What is Research -->
+        <div class="flip-scene research-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front research-card-front glass-card">
+              <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: var(--neon-cyan);">⌬</div>
+              <div>
+                <h4 style="font-size: 1.15rem; color: #fff;">01 / WHAT IS RESEARCH?</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.35rem;">Scientific inquiry, hypothesis formulation, and evidence-based pharmaceutical discovery.</p>
+              </div>
+              <span class="click-hint">⇄ CLICK TO EXPLORE PILLAR</span>
+            </div>
+            <div class="flip-back research-card-back glass-card" style="padding: 1.4rem; text-align: left;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.6rem; font-size: 1.05rem;">What is Research?</h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 0.6rem;">
+                Research is a systematic process of inquiry, data collection, and critical analysis designed to discover new scientific facts, validate theories, and solve complex healthcare challenges.
+              </p>
+              <p style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.55;">
+                In pharmacy, research bridges curiosity and clinical practice — guiding students from literature review to experimental formulation, data interpretation, and scientific writing.
+              </p>
+              <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--neon-emerald); margin-top: 0.75rem;">
+                FOCUS: SCIENTIFIC INQUIRY &amp; DISCOVERY
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Find Literature -->
+        <div class="flip-scene research-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front research-card-front glass-card">
+              <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: var(--neon-violet);">📚</div>
+              <div>
+                <h4 style="font-size: 1.15rem; color: #fff;">02 / FIND LITERATURE</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.35rem;">Access PubMed, ScienceDirect, Google Scholar &amp; DOAJ for academic research.</p>
+              </div>
+              <span class="click-hint">⇄ CLICK TO EXPLORE DATABASES</span>
+            </div>
+            <div class="flip-back research-card-back glass-card" style="padding: 1.1rem 1.3rem; text-align: left; overflow-y: auto;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.35rem; font-size: 0.95rem;">BUILD RESEARCH SKILLS</h4>
+              <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem;">
+                Resources for literature reviews, research methodology, statistics, referencing, plagiarism awareness, scientific writing and data interpretation.
+              </p>
+              <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.74rem; color: #cbd5e1; line-height: 1.5;">
+                <li style="margin-bottom: 0.25rem;">• <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;"><strong>PubMed / NCBI</strong></a> — Biomedical &amp; life-science research</li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://www.sciencedirect.com/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;"><strong>ScienceDirect</strong></a> — Journals, research articles &amp; book chapters</li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://scholar.google.com/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;"><strong>Google Scholar</strong></a> — Broad academic literature search</li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://www.ncbi.nlm.nih.gov/pmc/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;"><strong>PubMed Central</strong></a> — Free full-text biomedical articles</li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://doaj.org/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;"><strong>DOAJ</strong></a> — Open-access journals</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Publications -->
+        <div class="flip-scene research-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front research-card-front glass-card">
+              <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem; color: var(--neon-emerald);">📰</div>
+              <div>
+                <h4 style="font-size: 1.15rem; color: #fff;">03 / PUBLICATIONS</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.35rem;">Explore pharmacy journals and student scientific contributions.</p>
+              </div>
+              <span class="click-hint">⇄ CLICK TO EXPLORE JOURNALS</span>
+            </div>
+            <div class="flip-back research-card-back glass-card" style="padding: 1.1rem 1.3rem; text-align: left; overflow-y: auto;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.35rem; font-size: 0.95rem;">STUDENT PUBLICATIONS</h4>
+              <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem;">
+                A dedicated space for student research articles, reviews, scientific writing, graphical abstracts and other research-oriented contributions from the Pharmentia community.
+              </p>
+              <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--neon-emerald); margin-bottom: 0.3rem; text-transform: uppercase;">EXPLORE JOURNALS</div>
+              <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.74rem; color: #cbd5e1; line-height: 1.5;">
+                <li style="margin-bottom: 0.25rem;">• Pharmacy &amp; Pharmaceutical Sciences</li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://www.ijpsonline.com/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;">Indian Journal of Pharmaceutical Sciences</a></li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://www.ijper.org/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;">Indian Journal of Pharmaceutical Education and Research</a></li>
+                <li style="margin-bottom: 0.25rem;">• <a href="https://www.ijp-online.com/" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color: var(--neon-cyan); text-decoration: underline;">Indian Journal of Pharmacology</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ACTIVITIES SECTION -->
+    <section id="activities">
+      <div class="section-header">
+        <span class="section-badge">// Practical Exposure &amp; Highlights</span>
+        <h2 class="section-title">Hands-On Club Activities</h2>
+      </div>
+
+      <div class="activity-grid">
+        <div class="glass-card activity-card" style="padding: 1.2rem; overflow: hidden;">
+          <img src="archive-pharmabazz.jpg" alt="PharmaBazz 1.0" style="width: 100%; height: 170px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; color: #fff;">PharmaBazz 1.0 Pitching Competition</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Intercollegiate pharmacy pitching competition offering students a platform to present novel pharmaceutical ideas before academic and industry experts.
+          </p>
+        </div>
+
+        <div class="glass-card activity-card" style="padding: 1.2rem; overflow: hidden;">
+          <img src="archive-computer-lab.jpg" alt="Computer Lab Workshop" style="width: 100%; height: 170px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; color: #fff;">Computer Lab &amp; Scientific Writing Workshops</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Interactive sessions conducted by Prof. Abuzar Shaikh on manuscript preparation, graphical abstract design, database searching, and literature analysis.
+          </p>
+        </div>
+
+        <div class="glass-card activity-card" style="padding: 1.2rem; overflow: hidden;">
+          <img src="archive-certificate-distribution.jpg" alt="Certificate Distribution" style="width: 100%; height: 170px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; color: #fff;">Certificate Distribution &amp; Recognition</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            Honoring student achievements, workshop completions, and competition winners with official certificates and academic recognition alongside faculty leadership.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MEET THE TEAM (Interactive 3D Flip Profiles) -->
+    <section id="team">
+      <div class="section-header">
+        <span class="section-badge">// People of Pharmentia</span>
+        <h2 class="section-title">Meet the Core Team &amp; Founders</h2>
+      </div>
+
+      <div class="team-grid">
+        <!-- Mentor -->
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="abuzar-sheikh.png" alt="Prof. Abuzar Shaikh - Club Mentor" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Prof. Abuzar Shaikh</h4>
+              <span class="team-position">CLUB MENTOR</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="abuzar-sheikh.png" alt="Prof. Abuzar Shaikh" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Prof. Abuzar Shaikh</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                Every team needs a vision, but every vision needs the right guidance.<br><br>
+                As the Mentor of Pharmentia, Prof. Abuzar Shaikh brings experience, encouragement, and valuable guidance to help the team grow and turn ideas into meaningful initiatives.<br><br>
+                Behind every growing team is someone who knows when to guide, when to support, and when to simply say, “Go for it.”
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Champions / Founders -->
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="ayesha-kazi.png" alt="Ayesha Kazi - Champion / Founder" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Ayesha Kazi</h4>
+              <span class="team-position">CHAMPION / FOUNDER</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="ayesha-kazi.png" alt="Ayesha Kazi" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Ayesha Kazi</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She brings the energy. She brings the drive. She brings the champion mindset.<br><br>
+                As a Champion of Pharmentia, Ayesha is part of the team that keeps the spirit, ideas, and enthusiasm of the club moving forward.<br><br>
+                Always ready to step up, take on a challenge, and make things happen — she’s definitely one to watch.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="anas-memon.png" alt="Anas Memon - Champion / Founder" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Anas Memon</h4>
+              <span class="team-position">CHAMPION / FOUNDER</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="anas-memon.png" alt="Anas Memon" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Anas Memon</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                Big energy. Bold ideas. Always ready for the next challenge.<br><br>
+                As a Champion of Pharmentia, Anas brings enthusiasm, teamwork, and the drive to turn ideas into action.<br><br>
+                From showing up to stepping up — he’s here to make every Pharmentia moment count.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="tasneem-lokhandwala.jpg" alt="Tasneem Lokhandwala - Champion / Founder" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Tasneem Lokhandwala</h4>
+              <span class="team-position">CHAMPION / FOUNDER</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="tasneem-lokhandwala.jpg" alt="Tasneem Lokhandwala" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Tasneem Lokhandwala</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She brings the spark. She brings the ideas. And she brings the energy.<br><br>
+                As a Champion of Pharmentia, Tasneem is ready to take on challenges, contribute to the team, and make every initiative a little more impactful.<br><br>
+                A champion isn’t just a title — it’s a mindset.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Executive Leadership -->
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="adiba-khot.jpg" alt="Adiba Khot - President" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Adiba Khot</h4>
+              <span class="team-position">PRESIDENT</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="adiba-khot.jpg" alt="Adiba Khot" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Adiba Khot</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She leads the vision. She sets the direction. She keeps the team moving.<br><br>
+                As the President of Pharmentia, Adiba brings leadership, responsibility, and a vision for turning the club’s ideas into meaningful initiatives.<br><br>
+                Behind every strong team is someone keeping the bigger picture in sight — and that’s where she comes in.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="aatif-sheikh.png" alt="Aatif Shaikh - Vice President" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Aatif Shaikh</h4>
+              <span class="team-position">VICE PRESIDENT</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="aatif-sheikh.png" alt="Aatif Shaikh" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Aatif Shaikh</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                Ideas need direction. Teams need coordination. And someone has to keep everything moving.<br><br>
+                As the Vice President of Pharmentia, Aatif supports the team, takes on challenges, and helps turn plans into action.<br><br>
+                Always ready to step in, step up, and keep the momentum going.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="affan-ansari.png" alt="Affan Ansari - Media &amp; Marketing Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Affan Ansari</h4>
+              <span class="team-position">MEDIA &amp; MARKETING LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="affan-ansari.png" alt="Affan Ansari" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Affan Ansari</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                He sees it. He shoots it. He edits it. He turns it into a story.<br><br>
+                As the Marketing &amp; Media Lead, Affan brings his passion for photography, videography, editing, and creative content to the team — capturing moments and presenting the club’s ideas in the best possible way.<br><br>
+                Behind the camera, behind the edit, and occasionally asking for “one more take” — he’s the one making sure every moment gets its frame.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="lubna-mapkar.png" alt="Lubna Mapkar - Jt. Media &amp; Marketing Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Lubna Mapkar</h4>
+              <span class="team-position">JT. MEDIA &amp; MARKETING LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="lubna-mapkar.png" alt="Lubna Mapkar" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Lubna Mapkar</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She sees the idea. She finds the angle. She makes it stand out.<br><br>
+                As the JT. Media &amp; Marketing Lead, Lubna brings creativity, strategy, and a fresh perspective to Pharmentia’s digital presence — turning ideas into content people actually want to see.<br><br>
+                From brainstorming the concept to obsessing over the final detail — she’s probably already thinking about the next post.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="muskan-bangi.png" alt="Muskan Bangi - Technical Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Muskan Bangi</h4>
+              <span class="team-position">TECHNICAL LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="muskan-bangi.png" alt="Muskan Bangi" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Muskan Bangi</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She asks the questions. She digs deeper. She turns curiosity into knowledge.<br><br>
+                As the Technical Lead of Pharmentia, Muskan brings a research-focused mindset to the team — helping shape ideas with accuracy, creativity, and a little scientific curiosity.<br><br>
+                Because behind every good idea is someone asking, “But what does the research say?”
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="mariyam-inamdar.png" alt="Mariyam Inamdar - Jt. Technical Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Mariyam Inamdar</h4>
+              <span class="team-position">JT. TECHNICAL LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="mariyam-inamdar.png" alt="Mariyam Inamdar" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Mariyam Inamdar</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                Curious mind. Technical side. Always ready to learn something new.<br><br>
+                As the JT. Technical Lead of Pharmentia, Mariyam brings her interest in research and technical work to the team — helping turn concepts into something practical and impactful.<br><br>
+                Because sometimes the best ideas start with a simple, “Wait… what if we try this?”
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="humeira-dasurkar.png" alt="Humeira Dasurkar - Documentation Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Humeira Dasurkar</h4>
+              <span class="team-position">DOCUMENTATION LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="humeira-dasurkar.png" alt="Humeira Dasurkar" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Humeira Dasurkar</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                Someone has to remember the details — and she’s got it covered.<br><br>
+                As the Documentation Lead of Pharmentia, Humeira keeps track of the ideas, events, moments, and work that make the club what it is.<br><br>
+                From the first note to the final document — she makes sure nothing important gets lost in the chaos.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-scene team-card-scene" onclick="this.classList.toggle('is-flipped')">
+          <div class="flip-card">
+            <div class="flip-front team-front glass-card">
+              <img src="tarannum-ansari.png" alt="Ansari Tarannum Yameen - Event &amp; Graphics Lead" class="team-avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); margin-bottom: 1rem; background: rgba(0, 240, 255, 0.05);">
+              <h4>Ansari Tarannum Yameen</h4>
+              <span class="team-position">EVENT &amp; GRAPHICS LEAD</span>
+              <span class="click-hint">⇄ CLICK FOR BIO</span>
+            </div>
+            <div class="flip-back team-back glass-card" style="padding: 1.4rem;">
+              <img src="tarannum-ansari.png" alt="Ansari Tarannum Yameen" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; object-position: top center; border: 2px solid var(--neon-cyan); margin: 0 auto 0.4rem;">
+              <h4 style="color: var(--neon-cyan); margin-bottom: 0.3rem; font-size: 1rem;">Ansari Tarannum Yameen</h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; text-align: center;">
+                She takes an idea, adds creativity, and somehow turns it into something you want to look at twice.<br><br>
+                As the Event &amp; Graphics Lead, Tarannum brings together creativity, design, and event energy to make Pharmentia’s initiatives stand out.<br><br>
+                From the first concept to the final visual — she’s making sure the details hit just right.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ARCHIVE SECTION -->
+    <section id="archive">
+      <div class="section-header">
+        <span class="section-badge">// Media &amp; Retrospectives</span>
+        <h2 class="section-title">Club Archives &amp; Gallery</h2>
+      </div>
+
+      <div class="archive-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+        <div class="archive-item glass-card" style="height: 280px;">
+          <img src="archive-cosmoprof.jpg" alt="Cosmoprof India Delegation" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+          <div class="archive-caption">Cosmoprof India Delegation Showcase</div>
+        </div>
+        <div class="archive-item glass-card" style="height: 280px;">
+          <img src="archive-stage-assembly.jpg" alt="Pharmentia Inaugural Assembly" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+          <div class="archive-caption">Pharmentia Inaugural Assembly &amp; Stage Presentation</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. VOTE OF THANKS TO DR. SHARIQ SYED -->
+    <section class="glass-card dean-section">
+      <div class="dean-photo-wrap">
+        <img src="dr-shariq-syed.png" alt="Dr. Shariq Syed" class="dean-photo" />
+      </div>
+      <div class="dean-text">
+        <h3>Special Thanks to Dr. Shariq Syed</h3>
+        <span class="dean-title">LEADERSHIP • VISION • EXCELLENCE // AIKTC</span>
+        <p>
+          "Our club owes much of its recent success to Dr. Shariq Syed. His inspiring leadership and proactive support over the past year have provided us with the resources and confidence to reach new heights."
+        </p>
+      </div>
+    </section>
+
+    <!-- 8. JOIN US & COMMUNITY LINKS -->
+    <section id="join" class="glass-card join-section">
+      <span class="section-badge">// Membership &amp; Invitations</span>
+      <h2 style="font-size: 2.4rem; margin: 0.4rem 0 1rem; color: #fff;">Join Pharmentia R&amp;D Club</h2>
+      <p style="color: var(--text-muted); max-width: 620px; margin: 0 auto 2rem; font-size: 0.98rem; line-height: 1.7;">
+        Are you an AIKTC pharmacy student eager to join research projects, master scientific communication, or participate in pharmaceutical innovation? Request your membership invitation directly via email to <strong>pharmentia.aiktc@gmail.com</strong>!
+      </p>
+
+      <!-- Quick Application Form to Compose Email -->
+      <div class="glass-card" style="max-width: 580px; margin: 0 auto 2.5rem; padding: 2rem; text-align: left; border-color: rgba(0, 240, 255, 0.28);">
+        <h4 style="font-size: 1.15rem; color: var(--neon-cyan); margin-bottom: 1.2rem; text-align: center;">✉ Compose Membership Invitation Email</h4>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); display: block; margin-bottom: 0.4rem;">FULL NAME</label>
+            <input type="text" id="inviteName" placeholder="e.g. Ayesha Kazi" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: rgba(7, 13, 24, 0.85); border: 1px solid var(--glass-border); color: #fff; font-family: var(--font-sans); outline: none;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); display: block; margin-bottom: 0.4rem;">YEAR OF STUDY</label>
+              <select id="inviteYear" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: rgba(7, 13, 24, 0.85); border: 1px solid var(--glass-border); color: #fff; font-family: var(--font-sans); outline: none;">
+                <option value="First Year B.Pharm">First Year B.Pharm</option>
+                <option value="Second Year B.Pharm">Second Year B.Pharm</option>
+                <option value="Third Year B.Pharm">Third Year B.Pharm</option>
+                <option value="Final Year B.Pharm">Final Year B.Pharm</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); display: block; margin-bottom: 0.4rem;">STUDENT ID</label>
+              <input type="text" id="inviteRollNo" placeholder="e.g. 24SOP102" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; background: rgba(7, 13, 24, 0.85); border: 1px solid var(--glass-border); color: #fff; font-family: var(--font-sans); outline: none;">
+            </div>
+          </div>
+
+          <button onclick="handleComposeMail(event)" class="mail-btn" style="width: 100%; border: none; cursor: pointer; justify-content: center; margin-bottom: 0; padding: 1rem; font-size: 1.05rem;">
+            ✉ Compose &amp; Send Email Application →
+          </button>
+        </div>
+      </div>
+
+      <div class="social-links">
+        <a href="https://www.instagram.com/pharmentia_aiktc?stkn=MTRmcGVraXY0bzd2dw==" target="_blank" class="glass-card social-card" style="border-color: rgba(225, 48, 108, 0.45); color: #e1306c;">
+          <span>📸</span> Instagram
+        </a>
+        <a href="https://chat.whatsapp.com/F00bGlbBkSBGiNgJhIc4YH?s=cl&p=a&ilr=4&iam=1" target="_blank" class="glass-card social-card" style="border-color: rgba(37, 211, 102, 0.4); color: #25d366;">
+          <span>💬</span> WhatsApp Community
+        </a>
+        <a href="https://www.linkedin.com/company/anjuman-i-islam%E2%80%99s-kalsekar-technical-campus-school-of-pharmacy-autonomous/" target="_blank" class="glass-card social-card" style="border-color: rgba(0, 119, 181, 0.4); color: #0077b5;">
+          <span>💼</span> AIKTC SOP LinkedIn Page
+        </a>
+      </div>
+    </section>
+
+    <!-- FOOTER WITH COLLEGE DETAILS -->
+    <footer>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 1.2rem;">
+        <div class="footer-logo" style="margin: 0;">
+          <img src="logo.png" alt="Pharmentia Emblem" style="width: 44px; height: 44px; border-radius: 50%; object-fit: contain;">
+        </div>
+        <div class="footer-logo" style="margin: 0; background: #ffffff;">
+          <img src="aiktc-logo.png" alt="AIKTC College Logo" style="width: 44px; height: 44px; border-radius: 50%; object-fit: contain; padding: 2px;">
+        </div>
+      </div>
+      <div class="footer-title">Anjuman-I-Islam's Kalsekar Technical Campus (AIKTC)</div>
+      <div class="footer-sub">School of Pharmacy • New Panvel, Navi Mumbai</div>
+      <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); margin-top: 1.5rem;">
+        © 2026 Pharmentia R&amp;D Club. Driven by Pharmaceutical Innovation.
+      </div>
+    </footer>
+  </div>
+
+  <!-- Realtime Molecular Background Animation Script -->
+  <script>
+    const canvas = document.getElementById('chem-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Small Rotating 3D DNA Strands
+    class SmallDNA {
+      constructor(x, y, scale = 1, speed = 0.015) {
+        this.x = x;
+        this.y = y;
+        this.scale = scale;
+        this.speed = speed;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.numBases = 16;
+        this.baseSpacing = 16 * scale; 
+        this.helixRadius = 26 * scale;
+        this.twistAngle = 0.28;
+      }
+
+      update() {
+        this.rotation += this.speed;
+      }
+
+      draw() {
+        const totalHeight = this.numBases * this.baseSpacing;
+        const startY = this.y - totalHeight / 2;
+
+        for (let i = 0; i < this.numBases; i++) {
+          const cy = startY + i * this.baseSpacing;
+          const angle = this.rotation + i * this.twistAngle;
+
+          const x1 = this.x + Math.cos(angle) * this.helixRadius;
+          const z1 = Math.sin(angle);
+
+          const x2 = this.x + Math.cos(angle + Math.PI) * this.helixRadius;
+          const z2 = Math.sin(angle + Math.PI);
+
+          ctx.beginPath();
+          ctx.moveTo(x1, cy);
+          ctx.lineTo(x2, cy);
+          ctx.strokeStyle = `rgba(0, 240, 255, ${0.08 + (z1 + 1) * 0.08})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(x1, cy, Math.max(1, 1.8 * this.scale * (z1 + 1.2) * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 240, 255, ${0.25 + ((z1 + 1) / 2) * 0.55})`;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(x2, cy, Math.max(1, 1.8 * this.scale * (z2 + 1.2) * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = (i % 2 === 0) 
+            ? `rgba(181, 55, 242, ${0.25 + ((z2 + 1) / 2) * 0.55})` 
+            : `rgba(0, 255, 163, ${0.25 + ((z2 + 1) / 2) * 0.55})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    // Small Floating Benzene Rings (C₆H₆)
+    class SmallBenzene {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(init = false) {
+        this.x = init ? Math.random() * width : (Math.random() > 0.5 ? -40 : width + 40);
+        this.y = Math.random() * height;
+        this.radius = 14 + Math.random() * 10;
+        this.vx = (Math.random() - 0.5) * 0.45;
+        this.vy = (Math.random() - 0.5) * 0.45;
+        this.rotZ = Math.random() * Math.PI * 2;
+        this.rotSpeedZ = (Math.random() - 0.5) * 0.012;
+        this.tiltY = 0.5 + Math.random() * 0.5;
+        this.alpha = 0.18 + Math.random() * 0.28;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotZ += this.rotSpeedZ;
+
+        if (this.x < -60 || this.x > width + 60 || this.y < -60 || this.y > height + 60) {
+          this.reset(false);
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotZ);
+        ctx.scale(1, this.tiltY);
+
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+          const a = (Math.PI / 3) * i;
+          pts.push({ x: Math.cos(a) * this.radius, y: Math.sin(a) * this.radius });
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(0, 240, 255, ${this.alpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        for (let i = 0; i < 6; i += 2) {
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x * 0.72, pts[i].y * 0.72);
+          ctx.lineTo(pts[(i + 1) % 6].x * 0.72, pts[(i + 1) % 6].y * 0.72);
+          ctx.strokeStyle = `rgba(0, 240, 255, ${this.alpha * 0.8})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        pts.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 240, 255, ${this.alpha + 0.3})`;
+          ctx.fill();
+        });
+
+        ctx.restore();
+      }
+    }
+
+    // Faint Floating "Rx" Watermarks
+    class FloatingRx {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(init = false) {
+        this.x = init ? Math.random() * width : Math.random() * width;
+        this.y = init ? Math.random() * height : height + 50;
+        this.size = 28 + Math.random() * 24;
+        this.vy = -(0.15 + Math.random() * 0.2);
+        this.vx = (Math.random() - 0.5) * 0.15;
+        this.alpha = 0.035 + Math.random() * 0.045;
+      }
+
+      update() {
+        this.y += this.vy;
+        this.x += this.vx;
+        if (this.y < -60) this.reset(false);
+      }
+
+      draw() {
+        ctx.save();
+        ctx.font = `600 ${this.size}px 'Cinzel', serif`;
+        ctx.fillStyle = `rgba(0, 240, 255, ${this.alpha})`;
+        ctx.fillText('℞', this.x, this.y);
+        ctx.restore();
+      }
+    }
+
+    // Initialize instances
+    const dnaMolecules = [
+      new SmallDNA(width * 0.12, height * 0.35, 0.8, 0.012),
+      new SmallDNA(width * 0.88, height * 0.65, 0.95, -0.014)
+    ];
+
+    const benzeneCount = Math.floor((width * height) / 50000) + 6;
+    const benzenes = Array.from({ length: benzeneCount }, () => new SmallBenzene());
+
+    const rxCount = 6;
+    const rxList = Array.from({ length: rxCount }, () => new FloatingRx());
+
+    window.addEventListener('resize', () => {
+      dnaMolecules[0].x = width * 0.12;
+      dnaMolecules[0].y = height * 0.35;
+      dnaMolecules[1].x = width * 0.88;
+      dnaMolecules[1].y = height * 0.65;
+    });
+
+    // Render loop
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+
+      rxList.forEach(rx => { rx.update(); rx.draw(); });
+      benzenes.forEach(b => { b.update(); b.draw(); });
+      dnaMolecules.forEach(dna => { dna.update(); dna.draw(); });
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    // Automatic Loader Dismissal
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if (loader) loader.classList.add('hidden');
+      }, 1400);
+    });
+    setTimeout(() => {
+      const loader = document.getElementById('loader');
+      if (loader) loader.classList.add('hidden');
+    }, 2200);
+
+    // Direct Mail Composition for Membership Invitation
+    function handleComposeMail(e) {
+      if (e) e.preventDefault();
+      const name = document.getElementById('inviteName')?.value.trim() || '';
+      const year = document.getElementById('inviteYear')?.value || '';
+      const studentId = document.getElementById('inviteRollNo')?.value.trim() || '';
+
+      const recipient = 'pharmentia.aiktc@gmail.com';
+      const subject = encodeURIComponent('Application for Membership Invitation - Pharmentia R&D Club');
+
+      let bodyText = `Respected Pharmentia R&D Club Committee,\n\n`;
+      bodyText += `I am writing to request an official invitation to become a student member of Pharmentia R&D Club at AIKTC School of Pharmacy.\n\n`;
+      bodyText += `--- Student Details ---\n`;
+      bodyText += `Full Name: ${name ? name : '[Your Full Name]'}\n`;
+      bodyText += `Academic Year: ${year ? year : '[e.g. Second Year B.Pharm]'}\n`;
+      bodyText += `Student ID: ${studentId ? studentId : '[Your Student ID]'}\n\n`;
+      bodyText += `Please send me an invitation and onboarding details for the club.\n\n`;
+      bodyText += `Thank you,\n`;
+      bodyText += `${name ? name : '[Your Name]'}\n`;
+      bodyText += `AIKTC School of Pharmacy`;
+
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${encodeURIComponent(bodyText)}`;
+      window.open(gmailUrl, '_blank');
+    }
+
+    // Check student session for user pill in navbar
+    const savedStudent = localStorage.getItem('pharmentia_student');
+    if (savedStudent) {
+      try {
+        const student = JSON.parse(savedStudent);
+        const openLoginBtn = document.getElementById('openLoginBtn');
+        if (openLoginBtn) {
+          openLoginBtn.outerHTML = `
+            <a href="profile.html" class="nav-cta" style="background: linear-gradient(135deg, #00ffa3, #00f0ff); color: #030811;">
+              👤 ${student.fullName.split(' ')[0]}
+            </a>
+          `;
+        }
+      } catch(e) {}
+    }
+  </script>
+</body>
+</html>
