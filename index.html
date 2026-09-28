@@ -56,16 +56,24 @@
     =================================================== */
     .loader {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       width: 100vw;
+      width: 100%;
       height: 100vh;
-      background-color: #050811;
-      z-index: 10000;
+      height: 100dvh;
+      min-height: 100%;
+      background-color: #03060f !important;
+      z-index: 999999 !important;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
+      margin: 0;
+      padding: 0;
       transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
     }
     .loader.hidden {
