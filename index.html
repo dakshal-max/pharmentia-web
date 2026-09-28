@@ -1571,22 +1571,9 @@
             </div>
           </div>
 
-          <button onclick="handleComposeMail(event, 'auto')" class="mail-btn" style="width: 100%; border: none; cursor: pointer; justify-content: center; margin-bottom: 0.3rem; padding: 1rem; font-size: 1.05rem;">
+          <button onclick="handleComposeMail(event)" class="mail-btn" style="width: 100%; border: none; cursor: pointer; justify-content: center; margin-bottom: 0; padding: 1rem; font-size: 1.05rem;">
             ✉ Compose &amp; Send Email Application →
           </button>
-
-          <!-- Fallback options for mobile & webmail -->
-          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem;">
-            <button onclick="handleComposeMail(event, 'mailto')" style="flex: 1; min-width: 130px; padding: 0.6rem 0.75rem; background: rgba(0, 240, 255, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; font-family: var(--font-mono); transition: all 0.2s;">
-              📱 Native Mail App
-            </button>
-            <button onclick="handleComposeMail(event, 'gmail')" style="flex: 1; min-width: 130px; padding: 0.6rem 0.75rem; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glass-border); color: #fff; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; font-family: var(--font-mono); transition: all 0.2s;">
-              🌐 Web Gmail
-            </button>
-            <button onclick="copyEmailAddress(this)" style="flex: 1; min-width: 130px; padding: 0.6rem 0.75rem; background: rgba(0, 255, 163, 0.1); border: 1px solid var(--neon-emerald); color: var(--neon-emerald); border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; font-family: var(--font-mono); transition: all 0.2s;">
-              📋 Copy Email
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1849,8 +1836,8 @@
       });
     }
 
-    // Direct Mail Composition for Membership Invitation (Cross-platform Mobile & Desktop)
-    function handleComposeMail(e, method = 'auto') {
+    // Direct Mail Composition for Membership Invitation (Smart Mobile vs Laptop Detection)
+    function handleComposeMail(e) {
       if (e) e.preventDefault();
       const name = document.getElementById('inviteName')?.value.trim() || '';
       const year = document.getElementById('inviteYear')?.value || '';
@@ -1876,23 +1863,14 @@
       const mailtoUrl = `mailto:${recipient}?subject=${subjectEnc}&body=${bodyEnc}`;
       const gmailWebUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subjectEnc}&body=${bodyEnc}`;
 
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Detect mobile device vs laptop/desktop
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
-      if (method === 'mailto') {
-        window.location.href = mailtoUrl;
-        return;
-      }
-      if (method === 'gmail') {
-        window.open(gmailWebUrl, '_blank');
-        return;
-      }
-
-      // Default 'auto' method:
       if (isMobile) {
-        // On mobile, native mailto link opens the user's installed mail client (Gmail app, Apple Mail, Outlook, etc.)
+        // Mobile: directly open native Gmail / Mail App on phone
         window.location.href = mailtoUrl;
       } else {
-        // On desktop, try web Gmail first in a new tab; fallback to mailto if popup blocked
+        // Laptop/Desktop: open Gmail web interface in a new browser tab
         try {
           const win = window.open(gmailWebUrl, '_blank');
           if (!win || win.closed || typeof win.closed === 'undefined') {
@@ -1902,42 +1880,6 @@
           window.location.href = mailtoUrl;
         }
       }
-    }
-
-    // Helper to copy email address to clipboard
-    function copyEmailAddress(btn) {
-      const email = 'pharmentia.aiktc@gmail.com';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(email).then(() => {
-          showCopySuccess(btn);
-        }).catch(() => {
-          fallbackCopyText(email, btn);
-        });
-      } else {
-        fallbackCopyText(email, btn);
-      }
-    }
-
-    function showCopySuccess(btn) {
-      const origText = btn.innerText;
-      btn.innerText = '✓ Email Copied!';
-      btn.style.borderColor = 'var(--neon-emerald)';
-      btn.style.color = 'var(--neon-emerald)';
-      setTimeout(() => {
-        btn.innerText = origText;
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      }, 2500);
-    }
-
-    function fallbackCopyText(text, btn) {
-      const input = document.createElement('input');
-      input.value = text;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-      showCopySuccess(btn);
     }
 
     // Check student session for user pill in navbar
