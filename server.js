@@ -50,6 +50,21 @@ db.serialize(() => {
         else console.log('✅ Students table ready');
     });
 
+    // Create Applications Table for Logging Emails
+    db.run(`
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fullName TEXT NOT NULL,
+            yearOfStudy TEXT NOT NULL,
+            studentId TEXT NOT NULL,
+            recipient TEXT DEFAULT 'pharmentia.aiktc@gmail.com',
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `, (err) => {
+        if (err) console.error('❌ Error creating applications table:', err);
+        else console.log('✅ Applications tracker table ready');
+    });
+
     // Auto Migration for existing columns
     const columnsToEnsure = [
         { name: 'specialization', type: "TEXT DEFAULT 'Pharmaceutics'" },
@@ -392,6 +407,32 @@ app.get('/api/students', (req, res) => {
             return res.status(500).json({ error: 'Failed to retrieve students list.' });
         }
         return res.json({ total: rows.length, students: rows });
+    });
+});
+
+// 7. RECORD AND RETRIEVE MEMBERSHIP EMAIL APPLICATIONS
+app.post('/api/applications', (req, res) => {
+    try {
+        const { name, year, studentId, recipient } = req.body;
+        const insertQuery = `INSERT INTO applications (fullName, yearOfStudy, studentId, recipient) VALUES (?, ?, ?, ?)`;
+        db.run(insertQuery, [name || 'Anonymous', year || 'N/A', studentId || 'N/A', recipient || 'pharmentia.aiktc@gmail.com'], function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Failed to record application.' });
+            }
+            console.log(`📩 Membership Application Logged: ${name} (${studentId}) - ${year}`);
+            return res.status(201).json({ message: 'Application logged successfully', id: this.lastID });
+        });
+    } catch (err) {
+        return res.status(500).json({ error: 'Server error logging application.' });
+    }
+});
+
+app.get('/api/applications', (req, res) => {
+    db.all("SELECT * FROM applications ORDER BY id DESC", [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch applications.' });
+        }
+        return res.json({ total: rows.length, applications: rows });
     });
 });
 

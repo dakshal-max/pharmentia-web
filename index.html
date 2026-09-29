@@ -1836,7 +1836,7 @@
       });
     }
 
-    // Direct Mail Composition for Membership Invitation (Smart Mobile vs Laptop Detection)
+    // Direct Mail Composition for Membership Invitation (Smart Mobile vs Laptop Detection + Sheet Logging)
     function handleComposeMail(e) {
       if (e) e.preventDefault();
       const name = document.getElementById('inviteName')?.value.trim() || '';
@@ -1856,6 +1856,29 @@
       rawBody += `Thank you,\n`;
       rawBody += `${name ? name : '[Your Name]'}\n`;
       rawBody += `AIKTC School of Pharmacy`;
+
+      // 1. Log entry to Express backend server
+      const payload = { name: name || 'Anonymous', year: year || 'N/A', studentId: studentId || 'N/A', recipient: recipient, timestamp: new Date().toISOString() };
+      try {
+        fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(function(err) { console.log('Local DB Log:', err); });
+      } catch(err) {}
+
+      // 2. Log entry to Google Sheets via Google Apps Script Web App
+      const googleSheetScriptUrl = window.PHARMENTIA_SHEET_URL || localStorage.getItem('pharmentia_sheet_url') || '';
+      if (googleSheetScriptUrl) {
+        try {
+          fetch(googleSheetScriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(function(err) { console.log('Sheet Log:', err); });
+        } catch(err) {}
+      }
 
       const subjectEnc = encodeURIComponent(rawSubject);
       const bodyEnc = encodeURIComponent(rawBody);
